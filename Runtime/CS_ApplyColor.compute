@@ -1,0 +1,31 @@
+// TextureApply.compute
+
+// Define the size of the thread groups
+#pragma kernel CSMain
+
+// Define input buffer and output texture
+StructuredBuffer<uint> colorBuffer;
+RWTexture2D<float4> resultTexture;
+uint width;
+uint height;
+
+[numthreads(8, 8, 1)]
+void CSMain (uint3 id : SV_DispatchThreadID) {
+   
+
+    // Check to ensure we are within bounds
+    if (id.x < width && id.y < height) {
+        uint index = id.y * width + id.x;
+        
+        // Retrieve the color from the buffer and normalize to [0, 1] range
+        float4 color = float4(
+            (colorBuffer[index] & 0xFF) / 255.0,
+            ((colorBuffer[index] >> 8) & 0xFF) / 255.0,
+            ((colorBuffer[index] >> 16) & 0xFF) / 255.0,
+            ((colorBuffer[index] >> 24) & 0xFF) / 255.0
+        );
+        
+        // Set the pixel color in the texture
+        resultTexture[id.xy] = color;
+    }
+}

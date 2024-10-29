@@ -1,0 +1,17 @@
+{
+    "name": "be.elab.intscreenwar",
+    "rootNamespace": "",
+    "references": [
+        "Unity.InputSystem",
+        "be.elab.snam16k"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
