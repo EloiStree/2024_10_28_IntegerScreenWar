@@ -1,0 +1,41 @@
+
+
+#pragma kernel CSMain
+
+struct Color32 {
+    uint r;
+    uint g;
+    uint b;
+    uint a;
+};
+
+uint width;
+uint height;
+uint toRemove;
+
+RWStructuredBuffer<Color32> pixels;
+
+[numthreads(8, 8, 1)]
+void CSMain (uint3 id : SV_DispatchThreadID) {
+    uint index = id.y * width + id.x;
+    if (index >= width * height) return; 
+
+    Color32 color = pixels[index];
+    if(color.r>toRemove)
+    color.r= color.r-toRemove;
+    else color.r=0;
+
+    if(color.g>toRemove)
+    color.g= color.g-toRemove;
+	else color.g=0;
+
+    if(color.b>toRemove)
+    color.b= color.b-toRemove;
+    else color.b=0;
+
+    if(color.a>toRemove)
+    color.a= color.a-toRemove;
+	else color.a=0;
+
+    pixels[index] = color;
+}

@@ -7,6 +7,7 @@ using UnityEngine.Events;
 
 public class MovePlayerFromIntInputMono : MonoBehaviour
 {
+    public ScreenMapAsNativeColor32Mono m_screenMap;
     public SNAM16K_ObjectInt m_controllerState;
     public SNAM16K_ObjectColor32 m_playerColor;
     public SNAM16K_ObjectPixelPositionShort m_playerPosition;
@@ -15,62 +16,54 @@ public class MovePlayerFromIntInputMono : MonoBehaviour
     public int m_playerCount = 100;
     public float m_deltaTime = 0.1f;
 
-    public Color m_defaultColor = Color.red;
-    public UnityEvent<NativeArray<Color32>> m_onMapChanged;
-    public NativeArray<Color32> m_colorNativeArray;
-
     public float m_pixelSpeed = 50;
+
+    public UnityEvent m_playersMoved;
+
     public void SetPlayerCount(int count)
     {
         m_playerCount = count;
     }
 
-    public void OnEnable()
-    {
-        m_screenWidth = Screen.width;
-        m_screenHeight = Screen.height;
-        m_colorNativeArray = new NativeArray<Color32>(m_screenWidth * m_screenHeight, Allocator.Persistent);
-        for (int i = 0; i < m_colorNativeArray.Length; i++)
-        {
-            m_colorNativeArray[i] = m_defaultColor;
-        }
-        m_onMapChanged.Invoke(m_colorNativeArray);
-
-    }
-    public void OnDisable()
-    {
-        if(m_colorNativeArray.IsCreated)
-            m_colorNativeArray.Dispose();
-        
-    }
 
     [ContextMenu("Apply Turn")]
-    public void ApplyTurn() { 
+    public void ApplyTurn() {
+
+        if (m_screenMap == null || !m_screenMap.IsInitialized())
+            return;
         m_deltaTime = Time.deltaTime;
+
+        m_screenMap.GetScreenHeight(out int screenHeight);
+        m_screenMap.GetScreenWidth(out int screenWidth);
+
         STRUCTJOB_MovePlayerFromIntInput job = new STRUCTJOB_MovePlayerFromIntInput()
         {
             m_controllerState = m_controllerState.GetNativeArrayHolder().GetNativeArray(),
             m_playerPositionCurrent = m_playerPosition.GetNativeArrayHolder().GetNativeArray(),
             m_pixelSpeed = m_pixelSpeed,
             m_timePassed = m_deltaTime,
-            m_screenWidthMaxIndex = (short)(m_screenWidth - 1),
-            m_screenHeightMaxIndex = (short)(m_screenHeight - 1)
+            m_screenWidthMaxIndex = (short)(screenWidth - 1),
+            m_screenHeightMaxIndex = (short)(screenHeight - 1)
         };
 
         JobHandle jobHandle = job.Schedule(m_playerCount, 64);
         jobHandle.Complete();
 
+
         STRUCTJOB_PixelPositionToColor32 job2 = new STRUCTJOB_PixelPositionToColor32()
         {
             m_playerPositionCurrent = m_playerPosition.GetNativeArrayHolder().GetNativeArray(),
             m_playerColor = m_playerColor.GetNativeArrayHolder().GetNativeArray(),
-            m_textureColors = m_colorNativeArray,
-            m_textureWidth = m_screenWidth,
-            m_textureHeight = m_screenHeight,
-            m_playerCount = m_playerCount
+            m_textureColors = m_screenMap.GetNativeArray(),
+            m_playerCount = m_playerCount,
+            m_textureWidth = screenWidth,
+            m_textureHeight = screenHeight,
+            
         };
 
         JobHandle jobHandle2 = job2.Schedule(m_playerCount, 64);
         jobHandle2.Complete();
+
+        m_playersMoved.Invoke();
     }
 }

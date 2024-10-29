@@ -27,7 +27,7 @@ public struct STRUCTJOB_PixelPositionToColor32 : IJobParallelFor
             return;
         STRUCT_PixelPosition point = m_playerPositionCurrent[index];
         Color32 color = m_playerColor[index];
-        int indexInTexture = point.m_xLeftRight + point.m_yDownTop * m_textureWidth;
+        int indexInTexture = ((int)point.m_xLeftRight) + ((int)point.m_yDownTop) * m_textureWidth;
         m_textureColors[indexInTexture] = color;
     }
 }
@@ -101,6 +101,6 @@ public static class PixelPlayerUtility {
 [System.Serializable]
 public struct STRUCT_PixelPosition { 
 
-    public short m_xLeftRight;
-    public short m_yDownTop;
+    public float m_xLeftRight;
+    public float m_yDownTop;
 }
