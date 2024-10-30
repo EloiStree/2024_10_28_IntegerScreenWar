@@ -1,41 +1,32 @@
-
-
 #pragma kernel CSMain
-
-struct Color32 {
-    uint r;
-    uint g;
-    uint b;
-    uint a;
-};
 
 uint width;
 uint height;
 uint toRemove;
 
-RWStructuredBuffer<Color32> pixels;
+RWStructuredBuffer<uint> pixels;
 
 [numthreads(8, 8, 1)]
-void CSMain (uint3 id : SV_DispatchThreadID) {
+void CSMain(uint3 id : SV_DispatchThreadID) {
     uint index = id.y * width + id.x;
     if (index >= width * height) return; 
 
-    Color32 color = pixels[index];
-    if(color.r>toRemove)
-    color.r= color.r-toRemove;
-    else color.r=0;
+    // Read the pixel value
+    uint color = pixels[index];
 
-    if(color.g>toRemove)
-    color.g= color.g-toRemove;
-	else color.g=0;
+    // Extract the alpha channel (assuming format is ARGB, so alpha is in the highest 8 bits)
+    uint alpha = (color >> 24) & 0xFF;
 
-    if(color.b>toRemove)
-    color.b= color.b-toRemove;
-    else color.b=0;
+    // Adjust the alpha based on `toRemove` value
+    if (alpha >= toRemove) {
+        alpha -= toRemove;
+    } else {
+        alpha = 0;
+    }
 
-    if(color.a>toRemove)
-    color.a= color.a-toRemove;
-	else color.a=0;
+    // Reconstruct the color with updated alpha
+    color = (alpha << 24) | (color & 0x00FFFFFF);
 
+    // Write the updated color back to the buffer
     pixels[index] = color;
 }

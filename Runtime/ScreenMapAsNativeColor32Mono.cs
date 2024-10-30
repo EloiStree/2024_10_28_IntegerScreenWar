@@ -7,6 +7,7 @@ public class ScreenMapAsNativeColor32Mono : MonoBehaviour {
 
     public NativeArray<Color32> m_colorNativeArray;
     public Texture2D m_textureOfMap;
+    
     public int m_screenWidth = 1920;
     public int m_screenHeight = 1080;
     public int m_pixelCount;
@@ -55,6 +56,11 @@ public class ScreenMapAsNativeColor32Mono : MonoBehaviour {
         m_screenHeight = Screen.height;
         m_pixelCount = m_screenWidth * m_screenHeight;
         m_colorNativeArray = new NativeArray<Color32>(m_screenWidth * m_screenHeight, Allocator.Persistent);
+        m_emptyMap = new Color32[m_screenWidth * m_screenHeight];
+        for(int i = 0; i < m_emptyMap.Length; i++)
+        {
+            m_emptyMap[i] = new Color32(0, 0, 0, 0);
+        }
         for (int i = 0; i < m_colorNativeArray.Length; i++)
         {
             m_colorNativeArray[i] = new Color32(0, 0, 0, 0);
@@ -97,4 +103,25 @@ public class ScreenMapAsNativeColor32Mono : MonoBehaviour {
         if (m_applyAtLateUpdate)
             ApplyColor32ToTexture();
     }
+
+    Color32 [] m_emptyMap;
+    public void FlushToBlackTransparent()
+    {
+      
+        m_colorNativeArray.CopyFrom(m_emptyMap);
+    }
+
+    public Color32 GetAsInt(int xLeftRight, int yDownTop)
+    {
+        return m_colorNativeArray[yDownTop * m_screenWidth + xLeftRight];
+    }
+    public Color32 GetAsRound(float xLeftRight, float yDownTop)
+    {
+        return m_colorNativeArray[Mathf.RoundToInt(yDownTop) * m_screenWidth + Mathf.RoundToInt(xLeftRight)];
+    }
+    public Color32 GetAsInt(float xLeftRight, float yDownTop)
+    {
+        return GetAsInt((int)xLeftRight, (int)yDownTop);
+    }
+   
 } 

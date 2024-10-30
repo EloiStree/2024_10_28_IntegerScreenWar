@@ -7,70 +7,68 @@ using Unity.Jobs;
 using UnityEngine;
 using UnityEngine.Events;
 
-
-public struct STRUCTJOB_PixelPositionToColor32 : IJobParallelFor
-{
-    [ReadOnly]
-    public NativeArray<STRUCT_PixelPosition> m_playerPositionCurrent;
-    [ReadOnly]
-    public NativeArray<Color32> m_playerColor;
-
-    [NativeDisableParallelForRestriction]
-    public NativeArray<Color32> m_textureColors;
-    public int m_textureWidth;
-    public int m_textureHeight;
-    public int m_playerCount;
-
-    public void Execute(int index)
-    {
-        if (index >= m_playerCount)
-            return;
-        STRUCT_PixelPosition point = m_playerPositionCurrent[index];
-        Color32 color = m_playerColor[index];
-        int indexInTexture = ((int)point.m_xLeftRight) + ((int)point.m_yDownTop) * m_textureWidth;
-        m_textureColors[indexInTexture] = color;
-    }
-}
-
+//00997766551
 
 public struct STRUCTJOB_MovePlayerFromIntInput : IJobParallelFor
 {
     [ReadOnly]
-    public NativeArray<int> m_controllerState;
+    public NativeArray<bool> m_isPlayerPlaying;
+    [ReadOnly]
+    public NativeArray<GamepadByteId2020Percent11> m_controllerState;
+    [WriteOnly]
+    public NativeArray<STRUCT_PixelPosition> m_playerPositionPrevious;
     public NativeArray<STRUCT_PixelPosition> m_playerPositionCurrent;
-    public float m_pixelSpeed;
-    public float m_timePassed;
+    [WriteOnly]
+    public NativeArray<STRUCT_PixelPosition> m_playerPositionCursor;
+    public float m_pixelSpeedDelta;
+    public float m_cursorRange;
     public short m_screenWidthMaxIndex;
     public short m_screenHeightMaxIndex;
+    public float m_joystickDeadZone;
 
     public void Execute(int index)
     {
-        int intValue = m_controllerState[index];
-        PixelPlayerUtility.GetPlayerMoveDirection(intValue, out PixelDirection moveDigit);
-        if (moveDigit == PixelDirection.None)
-        {
+        if(m_isPlayerPlaying[index] == false)
             return;
-        }
+        GamepadByteId2020Percent11 pad = m_controllerState[index];
         STRUCT_PixelPosition point = m_playerPositionCurrent[index];
-        short d = (short)(1f + m_pixelSpeed * m_timePassed);
-        switch (moveDigit) {
-                case PixelDirection.Up: point.m_yDownTop += d; break;
-                case PixelDirection.Down: point.m_yDownTop -= d; break;
-                case PixelDirection.Left: point.m_xLeftRight -= d; break;
-                case PixelDirection.Right: point.m_xLeftRight += d; break;
-                case PixelDirection.UpLeft: point.m_xLeftRight -= d; point.m_yDownTop += d; break;
-                case PixelDirection.UpRight: point.m_xLeftRight += d; point.m_yDownTop += d; break;
-                case PixelDirection.DownLeft: point.m_xLeftRight -= d; point.m_yDownTop -= d; break;
-                case PixelDirection.DownRight: point.m_xLeftRight += d; point.m_yDownTop -= d; break;
+        m_playerPositionPrevious[index] = new STRUCT_PixelPosition()
+        {
+            m_xLeftRight = point.m_xLeftRight,
+            m_yDownTop = point.m_yDownTop
+        };
 
-        }
+        if( Mathf.Abs(pad.m_joystickLeftHorizontal) < m_joystickDeadZone)
+            pad.m_joystickLeftHorizontal = 0;
+        if( Mathf.Abs(pad.m_joystickLeftVertical) < m_joystickDeadZone)
+            pad.m_joystickLeftVertical = 0;
+        if( Mathf.Abs(pad.m_joystickRightHorizontal) < m_joystickDeadZone)
+            pad.m_joystickRightHorizontal = 0;
+        if( Mathf.Abs(pad.m_joystickRightVertical) < m_joystickDeadZone)
+            pad.m_joystickRightVertical = 0;
+
+        point.m_xLeftRight += pad.m_joystickLeftHorizontal* m_pixelSpeedDelta;
+        point.m_yDownTop += pad.m_joystickLeftVertical* m_pixelSpeedDelta;
+
+        STRUCT_PixelPosition cursor = point;
+        cursor.m_xLeftRight += pad.m_joystickRightHorizontal * m_cursorRange;
+        cursor.m_yDownTop += pad.m_joystickRightVertical * m_cursorRange;
+
+       
+        
         
         if(point.m_xLeftRight < 0) point.m_xLeftRight = 0;
         else if(point.m_xLeftRight > m_screenWidthMaxIndex) point.m_xLeftRight = m_screenWidthMaxIndex;
         if(point.m_yDownTop < 0) point.m_yDownTop = 0;
         else if(point.m_yDownTop > m_screenHeightMaxIndex) point.m_yDownTop = m_screenHeightMaxIndex;
 
+        if(cursor.m_xLeftRight < 0) cursor.m_xLeftRight = 0;
+        else if(cursor.m_xLeftRight > m_screenWidthMaxIndex) cursor.m_xLeftRight = m_screenWidthMaxIndex;
+        if(cursor.m_yDownTop < 0) cursor.m_yDownTop = 0;
+        else if(cursor.m_yDownTop > m_screenHeightMaxIndex) cursor.m_yDownTop = m_screenHeightMaxIndex;
+
         m_playerPositionCurrent[index] = point;
+        m_playerPositionCursor[index] = cursor;
     }
 }
 
@@ -86,17 +84,6 @@ public enum PixelDirection : byte
     DownLeft = 7,
     DownRight = 8
 }
-public static class PixelPlayerUtility { 
-
-    public static void GetPlayerMoveDirection(int intValue, out byte moveDigit) => moveDigit = (byte)(intValue % 10);
-    public static void GetPlayerCursorDirection(int intValue, out byte cursorDigit) => cursorDigit = (byte)(intValue / 10 % 10);
-    public static void GetPlayerSelectAction(int intValue, out byte selectAction) => selectAction = (byte)(intValue / 100 % 10);
- 
-    public static void GetPlayerMoveDirection(int intValue, out PixelDirection moveDigit) => moveDigit = (PixelDirection)(intValue % 10);
-    public static void GetPlayerCursorDirection(int intValue, out PixelDirection cursorDigit) => cursorDigit = (PixelDirection)(intValue / 10 % 10);
-    public static void GetPlayerSelectAction(int intValue, out PixelDirection selectAction) => selectAction = (PixelDirection)(intValue / 100 % 10);
-
-}
 
 [System.Serializable]
 public struct STRUCT_PixelPosition { 
@@ -104,3 +91,5 @@ public struct STRUCT_PixelPosition {
     public float m_xLeftRight;
     public float m_yDownTop;
 }
+
+

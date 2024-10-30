@@ -6,7 +6,7 @@ namespace Eloi.SNAM
 {
 
     [System.Serializable]
-    public class SNAM16K_ObjectPixelPositionShort: SNAM_Generic16KMono<STRUCT_PixelPosition>
+    public class SNAM16K_ObjectScreenPixelPosition: SNAM_Generic16KMono<STRUCT_PixelPosition>
     {
 
         [ContextMenu("Random Position")]

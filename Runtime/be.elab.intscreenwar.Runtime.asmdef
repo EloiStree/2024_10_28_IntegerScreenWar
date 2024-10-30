@@ -2,8 +2,10 @@
     "name": "be.elab.intscreenwar",
     "rootNamespace": "",
     "references": [
+        "be.elab.pushgenericintegerdate",
         "Unity.InputSystem",
-        "be.elab.snam16k"
+        "be.elab.snam16k",
+        "be.elab.intgenericsnam"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
