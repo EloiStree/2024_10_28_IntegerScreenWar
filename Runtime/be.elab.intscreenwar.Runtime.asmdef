@@ -5,7 +5,10 @@
         "be.elab.pushgenericintegerdate",
         "Unity.InputSystem",
         "be.elab.snam16k",
-        "be.elab.intgenericsnam"
+        "be.elab.intgenericsnam",
+        "be.elab.led25",
+        "be.elab.snamled25",
+        "be.elab.watchexecutetime"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

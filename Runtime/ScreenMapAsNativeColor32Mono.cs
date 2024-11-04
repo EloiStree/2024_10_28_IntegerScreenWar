@@ -123,5 +123,10 @@ public class ScreenMapAsNativeColor32Mono : MonoBehaviour {
     {
         return GetAsInt((int)xLeftRight, (int)yDownTop);
     }
-   
+
+    public void SetColor(int xLeftRight, int yDownTop, Color m_ledColor)
+    {
+        if(xLeftRight>=0 && xLeftRight < m_screenWidth && yDownTop >= 0 && yDownTop < m_screenHeight)
+            m_colorNativeArray[yDownTop * m_screenWidth + xLeftRight] = m_ledColor;
+    }
 } 

@@ -2,6 +2,8 @@ using UnityEngine;
 using Unity.Collections;
 using System;
 using System.Collections;
+using Eloi.WatchAndDate;
+using UnityEngine.Rendering;
 
 public class RemoveAlphaColor32FromMapMono : MonoBehaviour
 {
@@ -16,6 +18,12 @@ public class RemoveAlphaColor32FromMapMono : MonoBehaviour
     public float m_removePixelPerUpdate;
 
 
+    public WatchAndDateTimeActionResult m_setData;
+    public WatchAndDateTimeActionResult m_setBuffer;
+    public WatchAndDateTimeActionResult m_setDispatch;
+    public WatchAndDateTimeActionResult m_setGetData;
+    public WatchAndDateTimeActionResult m_setCopyFrom;
+
     [ContextMenu("Execute")]
     public void Execute()
     {
@@ -27,8 +35,9 @@ public class RemoveAlphaColor32FromMapMono : MonoBehaviour
             m_pixelBuffer = new ComputeBuffer(pixelCount, sizeof(byte) * 4);
         if(color32s == null)
             color32s = new Color32[pixelCount];
+        m_setData.StartCounting();
         m_pixelBuffer.SetData(pixelArray);
-
+        m_setData.StopCounting();
 
         m_removePixelPerUpdate = (int) (m_pixelPerSecondsToRemove* Time.deltaTime);
         if(m_removePixelPerUpdate <= 1)
@@ -37,12 +46,36 @@ public class RemoveAlphaColor32FromMapMono : MonoBehaviour
         m_colorAdjustComputeShader.SetInt("width", width);
         m_colorAdjustComputeShader.SetInt("height", height);
         m_colorAdjustComputeShader.SetInt("toRemove",(int) m_removePixelPerUpdate);
-        m_colorAdjustComputeShader.SetBuffer(kernelHandle, "pixels", m_pixelBuffer);
-        m_colorAdjustComputeShader.Dispatch(kernelHandle, width / 8, height / 8, 1);
 
-        m_pixelBuffer.GetData(color32s);
-        pixelArray.CopyFrom(color32s);
-  
+        m_setBuffer.StartCounting();
+        m_colorAdjustComputeShader.SetBuffer(kernelHandle, "pixels", m_pixelBuffer);
+        m_setBuffer.StopCounting();
+
+        m_setDispatch.StartCounting();
+        m_colorAdjustComputeShader.Dispatch(kernelHandle, width / 8, height / 8, 1);
+        m_setDispatch.StopCounting();
+
+        m_setGetData.StartCounting();
+
+        // Request async GPU readback
+        AsyncGPUReadback.Request(m_pixelBuffer, request =>
+        {
+            if (request.hasError)
+            {
+                Debug.LogError("Error in AsyncGPUReadback request.");
+                return;
+            }
+
+            // Get data directly as a NativeArray to avoid extra copies
+            var asyncData = request.GetData<Color32>();
+
+            // Copy asyncData to pixelArray (or process it as needed)
+            m_setCopyFrom.StartCounting();
+            pixelArray.CopyFrom(asyncData);
+            m_setCopyFrom.StopCounting();
+        });
+
+        m_setGetData.StopCounting();
     }
 
     private void OnDestroy()
