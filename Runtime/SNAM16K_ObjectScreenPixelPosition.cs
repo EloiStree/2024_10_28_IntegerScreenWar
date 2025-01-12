@@ -9,6 +9,11 @@ namespace Eloi.SNAM
     public class SNAM16K_ObjectScreenPixelPosition: SNAM_Generic16KMono<STRUCT_PixelPosition>
     {
 
+        public bool m_useRuntimeScreenSize = true;
+        public int m_screenWidth=800;
+        public int m_screenHeight=450;
+
+
         [ContextMenu("Random Position")]
         public void RandomPosition() {
 
@@ -17,8 +22,8 @@ namespace Eloi.SNAM
             {
                 Set(i, new STRUCT_PixelPosition()
                 {
-                    m_xLeftRight = (short)Random.Range(0, Screen.width),
-                    m_yDownTop = (short)Random.Range(0, Screen.height)
+                    m_xLeftRight = (short)Random.Range(0, m_screenWidth),
+                    m_yDownTop = (short)Random.Range(0, m_screenHeight)
                 });
             }
         }

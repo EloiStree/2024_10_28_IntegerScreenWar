@@ -1,7 +1,9 @@
-﻿using Unity.Collections;
+﻿using Unity.Burst;
+using Unity.Collections;
 using Unity.Jobs;
 using UnityEngine;
 
+[BurstCompile(CompileSynchronously = true)]
 public struct STRUCTJOB_PixelPositionToColor32 : IJobParallelFor
 {
     [ReadOnly]

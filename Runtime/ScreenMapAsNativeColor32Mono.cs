@@ -19,6 +19,15 @@ public class ScreenMapAsNativeColor32Mono : MonoBehaviour {
         m_colorNativeArray[index] = color;
     }
 
+    public void SetColor(in float xLeftRight, in float yDownTop, in Color32 color)
+    {
+        int x = (int)( xLeftRight * m_screenWidth );
+        int y = (int)( (yDownTop) * m_screenHeight );
+        if (x >= 0 && x < m_screenWidth && y >= 0 && y < m_screenHeight)
+            m_colorNativeArray[y * m_screenWidth + x] = color;
+
+    }
+
     public void GetScreenWidth(out int width)
     {
         width = m_screenWidth;
@@ -47,13 +56,15 @@ public class ScreenMapAsNativeColor32Mono : MonoBehaviour {
     public bool IsInitialized() { 
          return m_colorNativeArray.IsCreated;
     }
-
+    public bool m_useGameScreenSize = false;
     public bool mipmap;
     public bool linear;
     public void Awake()
     {
+        if (m_useGameScreenSize) { 
         m_screenWidth = Screen.width;   
         m_screenHeight = Screen.height;
+        }
         m_pixelCount = m_screenWidth * m_screenHeight;
         m_colorNativeArray = new NativeArray<Color32>(m_screenWidth * m_screenHeight, Allocator.Persistent);
         m_emptyMap = new Color32[m_screenWidth * m_screenHeight];
@@ -107,6 +118,10 @@ public class ScreenMapAsNativeColor32Mono : MonoBehaviour {
     Color32 [] m_emptyMap;
     public void FlushToBlackTransparent()
     {
+        //if (m_colorNativeArray.IsCreated)
+        //    m_colorNativeArray.Dispose();
+        //m_colorNativeArray= new NativeArray<Color32>(m_screenWidth * m_screenHeight, Allocator.TempJob);
+        //m_textureOfMap.SetPixelData(m_colorNativeArray, 0);
       
         m_colorNativeArray.CopyFrom(m_emptyMap);
     }

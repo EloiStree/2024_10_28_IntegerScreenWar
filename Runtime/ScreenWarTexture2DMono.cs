@@ -20,11 +20,15 @@ public class ScreenWarTexture2DMono : MonoBehaviour
     public void GetCreatedTexture(out Texture2D texture) {
         texture = m_createdMap;
     }
+    public bool m_useScreenSize = false;
 
     public void OnEnable()
     {
-        m_screenWidth = Screen.width;
-        m_screenHeight = Screen.height;
+        if (m_useScreenSize)
+        {
+            m_screenWidth = Screen.width;
+            m_screenHeight = Screen.height;
+        }
 
         m_createdMap = new Texture2D(Screen.width, Screen.height,TextureFormat.RGBA32,m_mipmap, m_linear);
         m_createdMap.filterMode = FilterMode.Point;

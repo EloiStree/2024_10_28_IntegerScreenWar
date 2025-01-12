@@ -8,7 +8,7 @@ public class ScreenWarMono_InputToGamepad : MonoBehaviour
     public SNAM16K_ObjectBool m_isPlayerPlaying;
     public SNAM16K_ObjectGamepad2020 m_player;
     public int m_index=2501;
-    public GamepadByteId2020Percent11 m_gamepad;
+    public STRUCT_GamepadByteId2020Percent11 m_gamepad;
 
 
     public void SetLeftHorizontal(float value)=> m_gamepad.m_joystickLeftHorizontal = (value);

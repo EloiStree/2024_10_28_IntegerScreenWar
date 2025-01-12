@@ -16,15 +16,21 @@ public class ApplyNativeColorToTextureMono : MonoBehaviour
     public UnityEvent<RenderTexture> m_onTextureChanged;
 
 
+    public bool m_useScreenSize = false;
+
+
     void Start()
     {
 
         m_outputTexture = new RenderTexture(m_screenWidth, m_screenHeight, 0, RenderTextureFormat.ARGB32);
         m_outputTexture.enableRandomWrite = true;
         m_outputTexture.Create();
+        if(m_useScreenSize)
+        {
         m_screenWidth = Screen.width;
         m_screenHeight = Screen.height;
 
+        }
         m_colors = new NativeArray<Color32>(m_screenWidth * m_screenHeight, Allocator.Persistent);
 
         // Fill the NativeArray with some color data (example: all white)

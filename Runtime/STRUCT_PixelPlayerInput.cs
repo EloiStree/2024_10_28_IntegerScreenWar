@@ -2,6 +2,7 @@
 using Eloi.SNAM;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
 using UnityEngine;
@@ -9,12 +10,13 @@ using UnityEngine.Events;
 
 //00997766551
 
+[BurstCompile(CompileSynchronously = true)]
 public struct STRUCTJOB_MovePlayerFromIntInput : IJobParallelFor
 {
     [ReadOnly]
     public NativeArray<bool> m_isPlayerPlaying;
     [ReadOnly]
-    public NativeArray<GamepadByteId2020Percent11> m_controllerState;
+    public NativeArray<STRUCT_GamepadByteId2020Percent11> m_controllerState;
     [WriteOnly]
     public NativeArray<STRUCT_PixelPosition> m_playerPositionPrevious;
     public NativeArray<STRUCT_PixelPosition> m_playerPositionCurrent;
@@ -30,7 +32,7 @@ public struct STRUCTJOB_MovePlayerFromIntInput : IJobParallelFor
     {
         if(m_isPlayerPlaying[index] == false)
             return;
-        GamepadByteId2020Percent11 pad = m_controllerState[index];
+        STRUCT_GamepadByteId2020Percent11 pad = m_controllerState[index];
         STRUCT_PixelPosition point = m_playerPositionCurrent[index];
         m_playerPositionPrevious[index] = new STRUCT_PixelPosition()
         {
